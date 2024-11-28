@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 
 // Web socket for sending the data to the server
-const socket = new WebSocket('ws://large-busy-hickory.glitch.me/');
+const socket = new WebSocket('wss://large-busy-hickory.glitch.me/');
 
 // Log when the connection is open
 socket.addEventListener('open', () => {
@@ -205,6 +205,7 @@ function animate() {
     if (controller2) {
         const position2 = new THREE.Vector3();
         const rotation2 = new THREE.Quaternion();
+
         controller2.matrixWorld.decompose(position2, rotation2, new THREE.Vector3());
 
         console.log(`Controller 2 Position: ${position2.toArray()}`);
