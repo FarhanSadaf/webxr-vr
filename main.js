@@ -1,6 +1,24 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 
+// Web socket for sending the data to the server
+const socket = new WebSocket('ws://large-busy-hickory.glitch.me/');
+
+// Log when the connection is open
+socket.addEventListener('open', () => {
+    console.log('WebSocket connection established');  
+});
+
+// Log errors
+socket.addEventListener('error', (error) => {
+    console.error('WebSocket error:', error);
+});
+
+// Log if the connection closes unexpectedly
+socket.addEventListener('close', () => {
+    console.warn('WebSocket connection closed');
+});
+
 // Create a scene
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
@@ -148,10 +166,17 @@ function animate() {
     console.log(`Head Position: ${headPosition.toArray()}`);
     console.log(`Head Rotation (Euler): ${headEuler.toArray()}`);
     
+    let data = {};
+
     // Update text in VR
     let displayText = 'Head\n' 
         + `Roll: ${headEuler.x.toFixed(2)} Pitch: ${headEuler.y.toFixed(2)} Yaw: ${headEuler.z.toFixed(2)}\n` 
         + `X: ${headPosition.x.toFixed(2)} Y: ${headPosition.y.toFixed(2)} Z: ${headPosition.z.toFixed(2)}`;    
+
+    data['head'] = {
+        'position': headPosition.toArray(),
+        'rotation': headEuler.toArray()
+    };
 
     // Get controller positions and rotations
     if (controller1) {
@@ -165,6 +190,16 @@ function animate() {
         displayText += '\nController 1\n' 
             +  `Roll: ${rotation1.x.toFixed(2)} Pitch: ${rotation1.y.toFixed(2)} Yaw: ${rotation1.z.toFixed(2)}` + '\n'
             +  `X: ${position1.x.toFixed(2)} Y: ${position1.y.toFixed(2)} Z: ${position1.z.toFixed(2)}`;
+
+        data['controller1'] = {
+            'position': position1.toArray(),
+            'rotation': rotation1.toArray()
+        };
+    } else {
+        data['controller1'] = {
+            'position': null,
+            'rotation': null
+        }
     }
 
     if (controller2) {
@@ -178,7 +213,24 @@ function animate() {
         displayText += '\nController 2\n' 
             +  `Roll: ${rotation2.x.toFixed(2)} Pitch: ${rotation2.y.toFixed(2)} Yaw: ${rotation2.z.toFixed(2)}` + '\n'
             +  `X: ${position2.x.toFixed(2)} Y: ${position2.y.toFixed(2)} Z: ${position2.z.toFixed(2)}`;
+
+        data['controller2'] = {
+            'position': position2.toArray(),
+            'rotation': rotation2.toArray()
+        };
+    } else {
+        data['controller2'] = {
+            'position': null,
+            'rotation': null
+        }
     }
+
+    data['timestamp'] = Date.now();
+
+    // If vr is enabled and the socket is open, send the data
+    if (renderer.xr.enabled && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(data));
+    } 
     
     // Add the text to the scene
     textMesh.material.map.dispose();
@@ -197,7 +249,6 @@ function animate() {
 
 	renderer.render(scene, camera);
 }
-
 
 // Resize the renderer when the window is resized
 window.addEventListener('resize', () => {
