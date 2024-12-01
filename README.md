@@ -14,5 +14,5 @@ https://webxr-vr.netlify.app/
 ## Server
 https://github.com/FarhanSadaf/webxr-glitch-server
 
-# Gameplay
+## Gameplay
 https://drive.google.com/file/d/1qfZsfa4fl2nGxylNLqVfSkqcqhAQHcWC/view?usp=sharing
